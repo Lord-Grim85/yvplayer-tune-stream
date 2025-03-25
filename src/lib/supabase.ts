@@ -1,9 +1,9 @@
 import { createClient } from '@supabase/supabase-js';
 import { Database } from './database.types';
 
-// These environment variables need to be set in the .env file
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+// Use environment variables if available, otherwise fallback to the values in integrations/supabase/client.ts
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || "https://wdeljshcghpxzlwmyvlr.supabase.co";
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndkZWxqc2hjZ2hweHpsd215dmxyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI5MDUzNjMsImV4cCI6MjA1ODQ4MTM2M30.Ak2Y4Se2MaCCZn4QNxj66glmGWcRdKaXYsXQlUGVRdU";
 
 if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error('Missing Supabase environment variables');
@@ -149,4 +149,4 @@ export const getVideo = async (id: string) => {
 
   if (error) throw error;
   return data;
-}; 
+};
