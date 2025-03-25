@@ -1,60 +1,94 @@
+import { useEffect } from 'react'
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { Toaster } from 'sonner'
+import { TooltipProvider } from '@/components/ui/tooltip'
+import { AuthProvider, useAuth } from '@/lib/auth'
+import Login from '@/pages/Login'
+import Home from '@/pages/Home'
+import Playlist from '@/pages/Playlist'
+import Video from '@/pages/Video'
 
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Index from "./pages/Index";
-import PlaylistPage from "./pages/PlaylistPage";
-import VideoPage from "./pages/VideoPage";
-import NotFound from "./pages/NotFound";
-import { useEffect } from "react";
+const queryClient = new QueryClient()
 
-const queryClient = new QueryClient();
+// Protected route component
+function ProtectedRoute({ children }: { children: React.ReactNode }) {
+  const { user, loading } = useAuth()
+  const location = useLocation()
 
-const App = () => {
-  // Add this useEffect to detect system theme and apply it
+  if (loading) {
+    return null
+  }
+
+  if (!user) {
+    return <Navigate to="/login" state={{ from: location }} replace />
+  }
+
+  return children
+}
+
+// App routes component
+function AppRoutes() {
+  return (
+    <Routes>
+      <Route path="/login" element={<Login />} />
+      <Route
+        path="/"
+        element={
+          <ProtectedRoute>
+            <Home />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/playlist/:id"
+        element={
+          <ProtectedRoute>
+            <Playlist />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/video/:id"
+        element={
+          <ProtectedRoute>
+            <Video />
+          </ProtectedRoute>
+        }
+      />
+    </Routes>
+  )
+}
+
+export default function App() {
+  // Detect and apply system theme
   useEffect(() => {
-    // Check if user's system prefers dark mode
-    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-    
-    // Apply theme class to document
-    if (prefersDark) {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
-    
-    // Listen for changes in system theme preference
-    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-    const handleChange = (e: MediaQueryListEvent) => {
-      if (e.matches) {
-        document.documentElement.classList.add("dark");
-      } else {
-        document.documentElement.classList.remove("dark");
-      }
-    };
-    
-    mediaQuery.addEventListener("change", handleChange);
-    return () => mediaQuery.removeEventListener("change", handleChange);
-  }, []);
+    const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+    document.documentElement.classList.toggle('dark', isDark)
+
+    const observer = new MutationObserver(() => {
+      const isDark = document.documentElement.classList.contains('dark')
+      document.documentElement.style.colorScheme = isDark ? 'dark' : 'light'
+    })
+
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class'],
+    })
+
+    return () => observer.disconnect()
+  }, [])
 
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/playlist/:id" element={<PlaylistPage />} />
-            <Route path="/video/:id" element={<VideoPage />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
+      <Router>
+        <AuthProvider>
+          <TooltipProvider>
+            <AppRoutes />
+            <Toaster />
+          </TooltipProvider>
+        </AuthProvider>
+      </Router>
     </QueryClientProvider>
-  );
-};
-
-export default App;
+  )
+}

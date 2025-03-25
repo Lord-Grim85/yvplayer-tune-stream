@@ -1,69 +1,117 @@
-# Welcome to your Lovable project
+# YVPlayer - YouTube Video Player Application
 
-## Project info
+A modern video player application that organizes and plays YouTube videos in playlists, with support for both English and Hindi content.
 
-**URL**: https://lovable.dev/projects/66d507bc-8281-42c3-9bc7-b38797ad7f1f
+## Features
 
-## How can I edit this code?
+- Two language tabs: English and Hindi
+- Organized playlists with video collections
+- Built-in YouTube video player
+- Responsive design with system theme support
+- Supabase backend for data storage
 
-There are several ways of editing your application.
+## Prerequisites
 
-**Use Lovable**
+- Node.js 18+ and npm/yarn/pnpm
+- A Supabase account and project
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/66d507bc-8281-42c3-9bc7-b38797ad7f1f) and start prompting.
+## Setup Instructions
 
-Changes made via Lovable will be committed automatically to this repo.
+1. Clone the repository:
+   ```bash
+   git clone <repository-url>
+   cd yvplayer-tune-stream
+   ```
 
-**Use your preferred IDE**
+2. Install dependencies:
+   ```bash
+   npm install
+   # or
+   yarn install
+   # or
+   pnpm install
+   ```
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+3. Set up Supabase:
+   - Create a new project in Supabase
+   - Copy the SQL from `supabase/migrations/20240325_initial_schema.sql`
+   - Run the SQL in your Supabase project's SQL editor
+   - Get your project URL and anon key from Project Settings > API
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+4. Configure environment variables:
+   ```bash
+   cp .env.example .env
+   ```
+   Then edit `.env` and add your Supabase project URL and anon key:
+   ```
+   VITE_SUPABASE_URL=your_project_url
+   VITE_SUPABASE_ANON_KEY=your_anon_key
+   ```
 
-Follow these steps:
+5. Start the development server:
+   ```bash
+   npm run dev
+   # or
+   yarn dev
+   # or
+   pnpm dev
+   ```
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+6. Open [http://localhost:5173](http://localhost:5173) in your browser
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+## Project Structure
 
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+```
+yvplayer-tune-stream/
+├── src/
+│   ├── components/      # React components
+│   ├── lib/            # Utilities and Supabase client
+│   ├── pages/          # Page components
+│   └── ...
+├── supabase/
+│   └── migrations/     # Database migrations
+└── ...
 ```
 
-**Edit a file directly in GitHub**
+## Database Schema
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+### Playlists Table
+```sql
+CREATE TABLE playlists (
+    id UUID PRIMARY KEY,
+    title VARCHAR(255),
+    description TEXT,
+    thumbnail_url TEXT,
+    language language_type,
+    created_at TIMESTAMPTZ,
+    updated_at TIMESTAMPTZ
+);
+```
 
-**Use GitHub Codespaces**
+### Videos Table
+```sql
+CREATE TABLE videos (
+    id UUID PRIMARY KEY,
+    playlist_id UUID REFERENCES playlists,
+    title VARCHAR(255),
+    description TEXT,
+    thumbnail_url TEXT,
+    video_id VARCHAR(50),
+    duration VARCHAR(10),
+    position INTEGER,
+    created_at TIMESTAMPTZ,
+    updated_at TIMESTAMPTZ
+);
+```
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## Contributing
 
-## What technologies are used for this project?
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
-This project is built with .
+## License
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/66d507bc-8281-42c3-9bc7-b38797ad7f1f) and click on Share -> Publish.
-
-## I want to use a custom domain - is that possible?
-
-We don't support custom domains (yet). If you want to deploy your project under your own domain then we recommend using Netlify. Visit our docs for more details: [Custom domains](https://docs.lovable.dev/tips-tricks/custom-domain/)
+This project is licensed under the MIT License - see the LICENSE file for details.
