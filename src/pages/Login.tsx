@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -8,15 +9,11 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { toast } from "sonner";
-import { signInWithOTP, verifyOTP, updateProfile } from "@/lib/supabase";
+import { signInWithOTP, updateProfile } from "@/lib/supabase";
 
 // Form validation schemas
 const emailSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
-});
-
-const otpSchema = z.object({
-  otp: z.string().length(6, "OTP must be 6 digits"),
 });
 
 const mobileSchema = z.object({
@@ -24,11 +21,10 @@ const mobileSchema = z.object({
 });
 
 type EmailForm = z.infer<typeof emailSchema>;
-type OTPForm = z.infer<typeof otpSchema>;
 type MobileForm = z.infer<typeof mobileSchema>;
 
 const Login = () => {
-  const [step, setStep] = useState<'email' | 'otp' | 'mobile'>('email');
+  const [step, setStep] = useState<'email' | 'mobile'>('email');
   const [email, setEmail] = useState("");
   const navigate = useNavigate();
 
@@ -36,12 +32,6 @@ const Login = () => {
   const emailForm = useForm<EmailForm>({
     resolver: zodResolver(emailSchema),
     defaultValues: { email: "" },
-  });
-
-  // OTP form
-  const otpForm = useForm<OTPForm>({
-    resolver: zodResolver(otpSchema),
-    defaultValues: { otp: "" },
   });
 
   // Mobile form
@@ -54,21 +44,13 @@ const Login = () => {
     try {
       await signInWithOTP(data.email);
       setEmail(data.email);
-      setStep('otp');
-      toast.success('OTP sent to your email');
+      toast.success('Magic link sent to your email');
+      // After sending magic link, show additional instructions
+      toast.info('Please check your email and click the link to continue', {
+        duration: 10000,
+      });
     } catch (error) {
-      toast.error('Failed to send OTP');
-      console.error(error);
-    }
-  };
-
-  const onOTPSubmit = async (data: OTPForm) => {
-    try {
-      await verifyOTP(email, data.otp);
-      setStep('mobile');
-      toast.success('OTP verified successfully');
-    } catch (error) {
-      toast.error('Invalid OTP');
+      toast.error('Failed to send magic link');
       console.error(error);
     }
   };
@@ -90,8 +72,7 @@ const Login = () => {
         <CardHeader>
           <CardTitle>Welcome to YVPlayer</CardTitle>
           <CardDescription>
-            {step === 'email' && "Enter your email to receive an OTP"}
-            {step === 'otp' && "Enter the OTP sent to your email"}
+            {step === 'email' && "Enter your email to receive a magic link"}
             {step === 'mobile' && "Enter your mobile number to complete signup"}
           </CardDescription>
         </CardHeader>
@@ -113,31 +94,12 @@ const Login = () => {
                   )}
                 />
                 <Button type="submit" className="w-full">
-                  Send OTP
+                  Send Magic Link
                 </Button>
-              </form>
-            </Form>
-          )}
-
-          {step === 'otp' && (
-            <Form {...otpForm}>
-              <form onSubmit={otpForm.handleSubmit(onOTPSubmit)} className="space-y-4">
-                <FormField
-                  control={otpForm.control}
-                  name="otp"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>OTP</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Enter OTP" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <Button type="submit" className="w-full">
-                  Verify OTP
-                </Button>
+                <p className="text-sm text-center text-muted-foreground mt-4">
+                  We'll send you a magic link to sign in instantly.
+                  <br />Please check your email after submitting.
+                </p>
               </form>
             </Form>
           )}
@@ -170,4 +132,4 @@ const Login = () => {
   );
 };
 
-export default Login; 
+export default Login;
